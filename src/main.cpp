@@ -41,10 +41,15 @@ int main() {
   Shader basicShader("./src/shaders/shader.vert", "./src/shaders/shader.frag");
 
   float vertices[] = {
-      // positions         // colors
+      // positions                     // colors
       0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-      -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-      0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f  // top
+      -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+      0.0f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f  // top
+  };
+  float texCoords[] = {
+      0.0f, 0.0f, // lower-left corner
+      1.0f, 0.0f, // lower-right corner
+      0.5f, 1.0f  // top-center corner
   };
   unsigned int indices[] = {          // note that we start from 0!
                             0, 1, 2}; // 1-5 is ind 0, 6-11 is 2, and so on
@@ -71,6 +76,11 @@ int main() {
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
                         (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); see just lines
 

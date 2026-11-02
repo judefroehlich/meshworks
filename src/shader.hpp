@@ -3,9 +3,9 @@
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+// #include <fstream>
+// #include <iostream>
+// #include <sstream>
 #include <string>
 
 class Shader {
