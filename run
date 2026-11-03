@@ -1,0 +1,1 @@
+g++ -Wall -Wextra src/*.cpp src/glad.c -Iinclude -lglfw -o main && ./main
