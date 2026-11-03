@@ -80,9 +80,12 @@ int main() {
                         (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  stbi_set_flip_vertically_on_load(true);
+  unsigned int texture1, texture2;
+  glGenTextures(1, &texture1);
+
+  glBindTexture(GL_TEXTURE_2D, texture1);
+
   // set the texture wrapping/filtering options (on the currently bound texture
   // object)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -101,9 +104,31 @@ int main() {
   } else {
     std::cout << "Failed to load texture" << std::endl;
   }
+
+  stbi_image_free(data);
+
+  glGenTextures(1, &texture2);
+
+  glBindTexture(GL_TEXTURE_2D, texture2);
+
+  data = stbi_load("./src/textures/awesomeface.png", &width, &height,
+                   &nrChannels, 0);
+  if (data) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+
   stbi_image_free(data);
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); see just lines
+
+  basicShader.use();
+  glUniform1i(glGetUniformLocation(basicShader.ID, "texture1"),
+              0);                    // set it manually
+  basicShader.setInt("texture2", 1); // or with shader class
 
   while (!glfwWindowShouldClose(window)) {
     // input
@@ -115,7 +140,11 @@ int main() {
 
     basicShader.use();
 
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
