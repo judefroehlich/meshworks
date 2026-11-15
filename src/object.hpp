@@ -14,7 +14,6 @@ private:
   std::vector<Vertex> points;
 
 public:
-  // Declare functions here (you can implement small ones inline)
   void addVertex(const Vertex &v) { points.push_back(v); }
 
   std::vector<Vertex> getPoints() { return points; }

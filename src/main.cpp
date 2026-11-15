@@ -1,5 +1,9 @@
 #include <glad/glad.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -98,7 +102,7 @@ int main() {
   unsigned char *data = stbi_load("./src/textures/container.jpg", &width,
                                   &height, &nrChannels, 0);
   if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
@@ -126,6 +130,8 @@ int main() {
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); see just lines
 
   basicShader.use();
+
+  unsigned int transformLoc = glGetUniformLocation(basicShader.ID, "transform");
   glUniform1i(glGetUniformLocation(basicShader.ID, "texture1"),
               0);                    // set it manually
   basicShader.setInt("texture2", 1); // or with shader class
@@ -139,6 +145,12 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     basicShader.use();
+
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans =
+        glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
