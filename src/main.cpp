@@ -172,10 +172,33 @@ int main() {
   basicShader.setInt("texture2", 1); // or with shader class
 
   glEnable(GL_DEPTH_TEST);
+  double sx, sy;
+  bool held = false;
+  float yaw = 0;
+  float pitch = 0;
+  float sens = 0.15;
 
   while (!glfwWindowShouldClose(window)) {
     // input
     processInput(window);
+
+    double x, y;
+
+    glfwGetCursorPos(window, &x, &y);
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+      if (!held) {
+        sx = x;
+        sy = y;
+      }
+      held = true;
+      yaw += x - sx;
+      pitch += y - sy;
+      sx = x;
+      sy = y;
+    } else {
+      held = false;
+    }
 
     // rendering
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -195,9 +218,13 @@ int main() {
     for (unsigned int i = 0; i < 10; i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
-      float angle = 20.0f * i;
+      float angleY = 20.0f * i + yaw * sens;   // spin left/right
+      float angleX = 10.0f * i + pitch * sens; // tilt up/down
+
       model =
-          glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+          glm::rotate(model, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+      model =
+          glm::rotate(model, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
       basicShader.setMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
