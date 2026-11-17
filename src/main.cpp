@@ -173,10 +173,10 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
   double sx, sy;
+  float dx, dy;
   bool held = false;
-  float yaw = 0;
-  float pitch = 0;
-  float sens = 0.15;
+  glm::mat4 dragRot = glm::mat4(1.0f);
+  float sens = 0.35;
 
   while (!glfwWindowShouldClose(window)) {
     // input
@@ -186,14 +186,20 @@ int main() {
 
     glfwGetCursorPos(window, &x, &y);
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
       if (!held) {
         sx = x;
         sy = y;
       }
       held = true;
-      yaw += x - sx;
-      pitch += y - sy;
+      dx = x - sx;
+      dy = y - sy;
+      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(dx * sens),
+                            glm::vec3(0, 1, 0)) *
+                dragRot;
+      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(dy * sens),
+                            glm::vec3(1, 0, 0)) *
+                dragRot;
       sx = x;
       sy = y;
     } else {
@@ -201,7 +207,7 @@ int main() {
     }
 
     // rendering
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     basicShader.use();
@@ -218,13 +224,15 @@ int main() {
     for (unsigned int i = 0; i < 10; i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
-      float angleY = 20.0f * i + yaw * sens;   // spin left/right
-      float angleX = 10.0f * i + pitch * sens; // tilt up/down
+      float angleY = 20.0f * i; // spin left/right
+      float angleX = 10.0f * i; // tilt up/down
 
       model =
           glm::rotate(model, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
       model =
           glm::rotate(model, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
+
+      model = model * dragRot;
       basicShader.setMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
