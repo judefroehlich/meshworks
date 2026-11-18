@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <ostream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -85,12 +86,13 @@ int main() {
       -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
 
   glm::vec3 cubePositions[] = {
-      glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
-      glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
-      glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
-      glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
-      glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
-
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      // glm::vec3(2.0f, 5.0f, -15.0f),
+      // glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
+      // glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
+      // glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
+      // glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
+  };
   unsigned int indices[] = {// note that we start from 0!
                             0, 1, 2, 0, 2, 3};
 
@@ -172,11 +174,19 @@ int main() {
   basicShader.setInt("texture2", 1); // or with shader class
 
   glEnable(GL_DEPTH_TEST);
-  double sx, sy;
-  float dx, dy;
-  bool held = false;
+
+  // rotation
+  bool rotating = false;
+  double rot_start_x, rot_start_y;
+  float rot_dx, rot_dy;
   glm::mat4 dragRot = glm::mat4(1.0f);
-  float sens = 0.35;
+  float rot_sens = 0.35;
+
+  // movement
+  bool moving = false;
+  float mov_start_x, mov_start_y;
+  float mov_dx, mov_dy;
+  float mov_sens = 0.40;
 
   while (!glfwWindowShouldClose(window)) {
     // input
@@ -187,23 +197,39 @@ int main() {
     glfwGetCursorPos(window, &x, &y);
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-      if (!held) {
-        sx = x;
-        sy = y;
+      if (!rotating) {
+        rot_start_x = x;
+        rot_start_y = y;
       }
-      held = true;
-      dx = x - sx;
-      dy = y - sy;
-      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(dx * sens),
+      rotating = true;
+      rot_dx = x - rot_start_x;
+      rot_dy = y - rot_start_y;
+      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(rot_dx * rot_sens),
                             glm::vec3(0, 1, 0)) *
                 dragRot;
-      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(dy * sens),
+      dragRot = glm::rotate(glm::mat4(1.0f), glm::radians(rot_dy * rot_sens),
                             glm::vec3(1, 0, 0)) *
                 dragRot;
-      sx = x;
-      sy = y;
+      rot_start_x = x;
+      rot_start_y = y;
     } else {
-      held = false;
+      rotating = false;
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+      if (!moving) {
+        mov_start_x = x;
+        mov_start_y = y;
+      }
+      moving = true;
+      mov_dx = x - mov_start_x;
+      mov_dy = y - mov_start_y;
+
+      mov_start_x = x;
+      mov_start_y = y;
+
+    } else {
+      moving = false;
     }
 
     // rendering
@@ -221,7 +247,13 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, texture2);
 
     glBindVertexArray(VAO);
-    for (unsigned int i = 0; i < 10; i++) {
+    if (moving) {
+      for (unsigned int i = 0; i < std::size(cubePositions); i++) {
+        cubePositions[i] += glm::vec3(mov_dx, -mov_dy, 0.0f) * 0.01f * mov_sens;
+      }
+    }
+
+    for (unsigned int i = 0; i < std::size(cubePositions); i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       float angleY = 20.0f * i; // spin left/right
